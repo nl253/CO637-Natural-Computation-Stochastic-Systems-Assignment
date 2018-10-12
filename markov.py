@@ -4,8 +4,8 @@
 # Standard Library
 import random
 from fractions import Fraction
-from typing import List, Tuple
 from statistics import stdev
+from typing import List, Tuple
 
 FracVec = List[Fraction]
 FracMatrix = List[FracVec]
@@ -133,6 +133,25 @@ def exercise_3() -> Tuple[float, Fraction, Fraction, Fraction]:
     return stdev(results), results_s1, results_s3, results_s9
 
 
+def exercise_4() -> Tuple[float, Fraction, Fraction, Fraction]:
+
+    results = [run_markov(trans_probs=exercise_2(), steps=1)
+               for _ in range(1000000)]
+    results_s1 = Fraction(
+        len([state for state in results if state == 1]),
+        len(results))
+
+    results_s3 = Fraction(
+        len([state for state in results if state == 3]),
+        len(results))
+
+    results_s9 = Fraction(
+        len([state for state in results if state == 9]),
+        len(results))
+
+    return stdev(results), results_s1, results_s3, results_s9
+
+
 # execution & pprinting
 if __name__ == '__main__':
     from sys import argv
@@ -150,12 +169,18 @@ if __name__ == '__main__':
             print(f'probability for state 1: {p1}+-{std}')
             print(f'probability for state 3: {p3}+-{std}')
             print(f'probability for state 9: {p9}+-{std}')
+        elif exercise == 4:
+            std, p1, p3, p9 = exercise_3()
+            print(f'probability for state 1: {p1}+-{std}')
+            print(f'probability for state 3: {p3}+-{std}')
+            print(f'probability for state 9: {p9}+-{std}')
         else:
-            raise NotImplementedError(f'exercise {exercise} not yet done')
+            raise NotImplementedError(
+                f'exercise number "{exercise}" is invalid, try 1-4')
     else:
         print(f'''
 {__file__} - solutions to stochastic systems assessment
 
 Usage:
-    {__file__} < 1 | 2 | 3 | 4 | 5 >
+    {__file__} < 1 | 2 | 3 | 4 >
 '''.strip())
