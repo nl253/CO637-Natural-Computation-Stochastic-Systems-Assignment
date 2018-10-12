@@ -56,10 +56,12 @@ def run_markov(trans_probs: FracMatrix, state=random.randrange(1, 10), steps=1) 
     r_num, r_denom = random.random().as_integer_ratio()
     r = Fraction(r_num, r_denom)
 
-    # associate all probabilities with state number *before* sorting so info about what it is a transition to isn't lost
-    ordered_tp: List[Tuple[int, Fraction]] = [(0, Fraction(0, 1))] + sorted(enumerate(trans_probs[state - 1], start=1),
-                                                                            reverse=True,
-                                                                            key=(lambda pair: pair[1]))
+    # associate all probabilities with state number *before* 
+    # sorting so info about what it is a transition to isn't lost
+    ordered_tp: List[Tuple[int, Fraction]] = [(0, Fraction(0, 1))] + \
+            sorted(enumerate(trans_probs[state - 1], start=1),
+                   reverse=True,
+                   key=(lambda pair: pair[1]))
 
     def between(x, m, n) -> bool: return x > m and x <= n
 

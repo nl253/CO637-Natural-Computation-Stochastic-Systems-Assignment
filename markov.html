@@ -1,0 +1,403 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>~/Documents/Programming/Uni/Natural-Computation/a4f2cbc04013db5e492414387598e018/markov.py.html</title>
+  <meta name="Generator" content="Vim/8.0">
+  <meta name="plugin-version" content="vim7.4_v2">
+  <meta name="syntax" content="python">
+  <meta name="settings" content="dynamic_folds,use_css,no_foldcolumn,expand_tabs,hover_unfold,prevent_copy=">
+  <meta name="colorscheme" content="fabulous">
+  <style type="text/css">
+    < !-- pre {
+      font-family: 'Sans Serif', 'DejaVu Sans Mono', 'Consolas', 'monospace', monospace;
+      color: #000000;
+      background-color: #ffffff;
+    }
+
+    body {
+      font-family: 'Sans Serif', 'DejaVu Sans Mono', 'Consolas', 'monospace', monospace;
+      color: #000000;
+      background-color: #ffffff;
+    }
+
+    * {
+      font-size: 1em;
+    }
+
+    .Comment {
+      color: #0087d7;
+      background-color: #eeeeee;
+      padding-bottom: 1px;
+    }
+
+    .Statement {
+      color: #af0087;
+      font-weight: bold;
+    }
+
+    .PreProc {
+      color: #ff005f;
+    }
+
+    .FoldColumn {
+      color: #5f87af;
+      background-color: #ffffff;
+      padding-bottom: 1px;
+    }
+
+    .String {
+      color: #008000;
+    }
+
+    .Keyword {
+      color: #875fff;
+      font-weight: bold;
+    }
+
+    .Operator {
+      color: #949494;
+      font-weight: bold;
+    }
+
+    .Boolean {
+      color: #af5f00;
+      font-weight: bold;
+    }
+
+    .Function {
+      color: #af5f00;
+      font-weight: bold;
+    }
+
+    .Conditional {
+      color: #d78700;
+      font-weight: bold;
+    }
+
+    .Repeat {
+      color: #0087af;
+      font-weight: bold;
+    }
+
+    .Folded {
+      color: #0000c0;
+      background-color: #a8a8a8;
+      padding-bottom: 1px;
+    }
+
+    .Number {
+      color: #804000;
+    }
+
+    .Include {
+      color: #d70000;
+      font-weight: bold;
+    }
+
+    .Type {
+      color: #5f87ff;
+      font-weight: bold;
+    }
+
+    .FoldColumn {
+      text-decoration: none;
+      white-space: pre;
+    }
+
+    body * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .open-fold>.Folded {
+      display: none;
+    }
+
+    .open-fold>.fulltext {
+      display: inline;
+    }
+
+    .closed-fold>.fulltext {
+      display: none;
+    }
+
+    .closed-fold>.Folded {
+      display: inline;
+    }
+
+    .open-fold>.toggle-open {
+      display: none;
+    }
+
+    .open-fold>.toggle-closed {
+      display: inline;
+    }
+
+    .closed-fold>.toggle-open {
+      display: inline;
+    }
+
+    .closed-fold>.toggle-closed {
+      display: none;
+    }
+
+
+    /* opening a fold while hovering won't be supported by IE6 and other
+similar browsers, but it should fail gracefully. */
+
+    .closed-fold:hover>.fulltext {
+      display: inline;
+    }
+
+    .closed-fold:hover>.toggle-filler {
+      display: none;
+    }
+
+    .closed-fold:hover>.Folded {
+      display: none;
+    }
+
+    -->
+
+  </style>
+  <!--[if lt IE 7]><style type="text/css">
+.open-fold   .Folded      { display: none; }
+.open-fold   .fulltext      { display: inline; }
+.open-fold   .toggle-open   { display: none; }
+.closed-fold .toggle-closed { display: inline; }
+
+.closed-fold .fulltext      { display: none; }
+.closed-fold .Folded      { display: inline; }
+.closed-fold .toggle-open   { display: inline; }
+.closed-fold .toggle-closed { display: none; }
+</style>
+<![endif]-->
+
+  <script type='text/javascript'>
+    <!--
+
+    function toggleFold(objID) {
+      var fold;
+      fold = document.getElementById(objID);
+      if (fold.className == 'closed-fold') {
+        fold.className = 'open-fold';
+      } else if (fold.className == 'open-fold') {
+        fold.className = 'closed-fold';
+      }
+    }
+
+    -->
+
+  </script>
+</head>
+
+<body>
+  <pre id='vimCodeElement'>
+<span class="PreProc">#!/usr/bin/env python3</span>
+<span class="Comment"># -*- coding: utf-8 -*-</span>
+
+<span class="Comment"># Standard Library</span>
+<span class="Include">import</span> random
+<span class="Include">from</span> fractions <span class="Include">import</span> <span class="Type">Fraction</span>
+<span class="Include">from</span> statistics <span class="Include">import</span> stdev
+<span class="Include">from</span> typing <span class="Include">import</span> <span class="Type">List</span><span class="Operator">,</span> <span class="Type">Tuple</span>
+
+<span class="Type">FracVec</span><span class="Operator"> = </span><span class="Type">List</span><span class="Operator">[</span><span class="Type">Fraction</span><span class="Operator">]</span>
+<span class="Type">FracMatrix</span><span class="Operator"> = </span><span class="Type">List</span><span class="Operator">[</span><span class="Type">FracVec</span><span class="Operator">]</span>
+
+
+<span class="Keyword">def</span> <span class="Function">transition_probs</span>(
+        ssp<span class="Operator">:</span> <span class="Type">FracVec</span><span class="Operator">,</span>
+        trans_probs<span class="Operator">=</span><span class="Operator">[[</span><span class="Type">Fraction</span>(<span class="Number">0</span><span class="Operator">,</span> <span class="Number">1</span>) <span class="Repeat">for</span> _ <span class="Operator">in</span> <span class="Function">range</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">10</span>)<span class="Operator">]</span>
+                     <span class="Repeat">for</span> _ <span class="Operator">in</span> <span class="Function">range</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">10</span>)<span class="Operator">]</span>
+) <span class="Operator">-&gt;</span> <span class="Type">FracMatrix</span><span class="Operator">:</span>
+
+    <span class="Comment"># in Python upper bound is exclusive</span>
+<span id='fold1' class='open-fold'><span class="Folded">+-- 20 lines: for s1 in range(1, 10):
+</span><span class='fulltext'>    <span class="Repeat">for</span> s1 <span class="Operator">in</span> <span class="Function">range</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">10</span>)<span class="Operator">:</span>
+<span id='fold2' class='open-fold'><span class="Folded">+--- 17 lines: for s2 in range(1, 10):
+</span><span class='fulltext'>        <span class="Repeat">for</span> s2 <span class="Operator">in</span> <span class="Function">range</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">10</span>)<span class="Operator">:</span>
+            <span class="Comment"># indicies are biased</span>
+            <span class="Comment"># state 1, for example, is stored in idx 0</span>
+<span id='fold3' class='open-fold'><span class="Folded">+---- 14 lines: acc_prob: Fraction = min(Fraction(1, 1),
+</span><span class='fulltext'>            acc_prob<span class="Operator">:</span> <span class="Type">Fraction</span> <span class="Operator">=</span> <span class="Function">min</span>(<span class="Type">Fraction</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">1</span>)<span class="Operator">,</span>
+                                     <span class="Type">Fraction</span>(ssp<span class="Operator">[</span>s2<span class="Operator"> - </span><span class="Number">1</span><span class="Operator">]</span><span class="Operator">,</span>
+                                              ssp<span class="Operator">[</span>s1<span class="Operator"> - </span><span class="Number">1</span><span class="Operator">]</span>))
+
+            sum_of_ps<span class="Operator"> = </span><span class="Function">sum</span>(trans_probs<span class="Operator">[</span>s1<span class="Operator"> - </span><span class="Number">1</span><span class="Operator">]</span>)
+
+            <span class="Conditional">if</span> sum_of_ps<span class="Operator"> &lt; </span><span class="Number">1</span><span class="Operator">:</span>
+                trans_probs<span class="Operator">[</span>s1<span class="Operator"> - </span><span class="Number">1</span><span class="Operator">][</span>s1<span class="Operator"> - </span><span class="Number">1</span><span class="Operator">]</span><span class="Operator"> = </span><span class="Type">Fraction</span>(<span class="Number">1</span><span class="Operator"> - </span>sum_of_ps<span class="Operator">,</span> <span class="Number">1</span>)
+
+            r_num<span class="Operator">,</span> r_denom<span class="Operator"> = </span>random<span class="Operator">.</span><span class="Function">random</span>()<span class="Operator">.</span><span class="Function">as_integer_ratio</span>()
+
+            r<span class="Operator"> = </span><span class="Type">Fraction</span>(r_num<span class="Operator">,</span> r_denom)
+
+            trans_probs<span class="Operator">[</span>s1<span class="Operator"> - </span><span class="Number">1</span><span class="Operator">][</span>s2<span class="Operator"> - </span><span class="Number">1</span><span class="Operator">]</span><span class="Operator"> = </span>acc_prob<span class="Operator"> * </span>r
+</span></span></span></span>
+    <span class="Keyword">return</span> trans_probs
+</span></span>
+
+<span class="Keyword">def</span> <span class="Function">print_matrix</span>(m<span class="Operator">:</span> <span class="Type">FracMatrix</span>) <span class="Operator">-&gt;</span> <span class="Type">None</span><span class="Operator">:</span>
+<span id='fold4' class='open-fold'><span class="Folded">+--  6 lines: for i in range(len(m)):
+</span><span class='fulltext'>    <span class="Repeat">for</span> i <span class="Operator">in</span> <span class="Function">range</span>(<span class="Function">len</span>(m))<span class="Operator">:</span>
+<span id='fold5' class='open-fold'><span class="Folded">+---  5 lines: for j in range(len(m[i])):
+</span><span class='fulltext'>        <span class="Repeat">for</span> j <span class="Operator">in</span> <span class="Function">range</span>(<span class="Function">len</span>(m<span class="Operator">[</span>i<span class="Operator">]</span>))<span class="Operator">:</span>
+            <span class="Conditional">if</span> j<span class="Operator"> == </span><span class="Number">0</span><span class="Operator">:</span>
+                <span class="Function">print</span>(<span class="Operator">'</span><span class="String">[ </span><span class="Operator">'</span><span class="Operator">,</span> end<span class="Operator">=</span><span class="Operator">''</span>)
+            <span class="Function">print</span>(m<span class="Operator">[</span>i<span class="Operator">][</span>j<span class="Operator">]</span><span class="Operator">,</span> end<span class="Operator">=</span><span class="Operator">'</span><span class="String"> </span><span class="Operator">'</span>)
+        <span class="Function">print</span>(<span class="Operator">'</span><span class="String">]</span><span class="Operator">'</span>)
+</span></span></span></span>
+
+<span class="Keyword">def</span> <span class="Function">run_markov</span>(trans_probs<span class="Operator">:</span> <span class="Type">FracMatrix</span><span class="Operator">,</span> state<span class="Operator">=</span>random<span class="Operator">.</span><span class="Function">randrange</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">10</span>)<span class="Operator">,</span> steps<span class="Operator">=</span><span class="Number">1</span>) <span class="Operator">-&gt;</span> <span class="Type">int</span><span class="Operator">:</span>
+<span id='fold6' class='open-fold'><span class="Folded">+-- 25 lines: &quot;&quot;&quot;Proposes a random state given on supplied transition probabilities.
+</span><span class='fulltext'>    <span class="Operator">&quot;&quot;&quot;</span><span class="String">Proposes a random state given on supplied transition probabilities.</span>
+<span class="String">    </span><span class="Operator">&quot;&quot;&quot;</span>
+
+    r_num<span class="Operator">,</span> r_denom<span class="Operator"> = </span>random<span class="Operator">.</span><span class="Function">random</span>()<span class="Operator">.</span><span class="Function">as_integer_ratio</span>()
+    r<span class="Operator"> = </span><span class="Type">Fraction</span>(r_num<span class="Operator">,</span> r_denom)
+
+    <span class="Comment"># associate all probabilities with state number *before* </span>
+    <span class="Comment"># sorting so info about what it is a transition to isn't lost</span>
+    ordered_tp<span class="Operator">:</span> <span class="Type">List</span><span class="Operator">[</span><span class="Type">Tuple</span><span class="Operator">[</span><span class="Type">int</span><span class="Operator">,</span> <span class="Type">Fraction</span><span class="Operator">]]</span> <span class="Operator">=</span> <span class="Operator">[</span>(<span class="Number">0</span><span class="Operator">,</span> <span class="Type">Fraction</span>(<span class="Number">0</span><span class="Operator">,</span> <span class="Number">1</span>))<span class="Operator">]</span><span class="Operator"> + </span><span class="Operator">\</span>
+            <span class="Function">sorted</span>(<span class="Function">enumerate</span>(trans_probs<span class="Operator">[</span>state<span class="Operator"> - </span><span class="Number">1</span><span class="Operator">]</span><span class="Operator">,</span> start<span class="Operator">=</span><span class="Number">1</span>)<span class="Operator">,</span>
+                   reverse<span class="Operator">=</span><span class="Boolean">True</span><span class="Operator">,</span>
+                   key<span class="Operator">=</span>(<span class="Keyword">lambda</span> pair<span class="Operator">:</span> pair<span class="Operator">[</span><span class="Number">1</span><span class="Operator">]</span>))
+
+    <span class="Keyword">def</span> <span class="Function">between</span>(x<span class="Operator">,</span> m<span class="Operator">,</span> n) <span class="Operator">-&gt;</span> <span class="Type">bool</span><span class="Operator">:</span> <span class="Keyword">return</span> x<span class="Operator"> &gt; </span>m <span class="Operator">and</span> x<span class="Operator"> &lt;= </span>n
+
+    <span class="Repeat">for</span> _ <span class="Operator">in</span> <span class="Function">range</span>(steps)<span class="Operator">:</span>
+        <span class="Comment"># tower sampling</span>
+<span id='fold7' class='open-fold'><span class="Folded">+---  6 lines: for i in range(len(ordered_tp) - 1):  -1 because I am looking ahead `i + 1`
+</span><span class='fulltext'>        <span class="Repeat">for</span> i <span class="Operator">in</span> <span class="Function">range</span>(<span class="Function">len</span>(ordered_tp)<span class="Operator"> - </span><span class="Number">1</span>)<span class="Operator">:</span>  <span class="Comment"># -1 because I am looking ahead `i + 1`</span>
+            <span class="Comment"># indicies upper-exclusive so bised</span>
+            <span class="Conditional">if</span> <span class="Function">between</span>(r<span class="Operator">,</span> <span class="Function">sum</span>(<span class="Operator">[</span>pair<span class="Operator">[</span><span class="Number">0</span><span class="Operator">]</span> <span class="Repeat">for</span> pair <span class="Operator">in</span> ordered_tp<span class="Operator">[</span><span class="Operator">:</span>i<span class="Operator"> + </span><span class="Number">1</span><span class="Operator">]]</span>)<span class="Operator">,</span>
+                       <span class="Function">sum</span>(<span class="Operator">[</span>pair<span class="Operator">[</span><span class="Number">0</span><span class="Operator">]</span> <span class="Repeat">for</span> pair <span class="Operator">in</span> ordered_tp<span class="Operator">[</span><span class="Operator">:</span>i<span class="Operator"> + </span><span class="Number">2</span><span class="Operator">]]</span>))<span class="Operator">:</span>
+                state<span class="Operator"> = </span>ordered_tp<span class="Operator">[</span>i<span class="Operator"> + </span><span class="Number">1</span><span class="Operator">][</span><span class="Number">0</span><span class="Operator">]</span>
+                <span class="Keyword">break</span>
+</span></span>
+    <span class="Keyword">return</span> state
+</span></span>
+
+<span class="Keyword">def</span> <span class="Function">exercise_1</span>() <span class="Operator">-&gt;</span> <span class="Type">FracMatrix</span><span class="Operator">:</span>
+
+    <span class="Comment"># 9 states with equal probability of being in every one</span>
+    <span class="Comment"># so the probability is 1/9 for being in each of them</span>
+    ssp<span class="Operator">:</span> <span class="Type">FracVec</span> <span class="Operator">=</span> <span class="Operator">[</span><span class="Type">Fraction</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">9</span>) <span class="Repeat">for</span> i <span class="Operator">in</span> <span class="Function">range</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">10</span>)<span class="Operator">]</span>
+
+    <span class="Keyword">return</span> <span class="Function">transition_probs</span>(ssp)
+
+
+<span class="Keyword">def</span> <span class="Function">exercise_2</span>() <span class="Operator">-&gt;</span> <span class="Type">FracMatrix</span><span class="Operator">:</span>
+
+    <span class="Comment"># the sum of all ssp needs to be 1.0</span>
+<span id='fold8' class='open-fold'><span class="Folded">+-- 25 lines: ssp: FracVec = [
+</span><span class='fulltext'>    ssp<span class="Operator">:</span> <span class="Type">FracVec</span> <span class="Operator">=</span> <span class="Operator">[</span>
+
+        <span class="Comment"># s1 [ BOT ROW ] all in mid row need to add up to 1/6</span>
+<span id='fold9' class='open-fold'><span class="Folded">+--- 19 lines: Fraction(1, 18),
+</span><span class='fulltext'>        <span class="Type">Fraction</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">18</span>)<span class="Operator">,</span>
+        <span class="Comment"># s2 [ BOT ROW ] because toprow = 1/18 + 1/18 + 1/18 = 1/18 * 3 = 3/18 = 1/6</span>
+        <span class="Type">Fraction</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">18</span>)<span class="Operator">,</span>
+        <span class="Comment"># s3 [ BOT ROW ]</span>
+        <span class="Type">Fraction</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">18</span>)<span class="Operator">,</span>
+
+        <span class="Comment"># s4 [ MID ROW ] all in mid row need to add up to 2/6</span>
+        <span class="Type">Fraction</span>(<span class="Number">2</span><span class="Operator">,</span> <span class="Number">18</span>)<span class="Operator">,</span>
+        <span class="Comment"># s5 [ MID ROW ] because midrow = 2/18 + 2/18 + 2/18 = 2/18 * 3 = 6/18 = 2/6</span>
+        <span class="Type">Fraction</span>(<span class="Number">2</span><span class="Operator">,</span> <span class="Number">18</span>)<span class="Operator">,</span>
+        <span class="Comment"># s6 [ MID ROW ]</span>
+        <span class="Type">Fraction</span>(<span class="Number">2</span><span class="Operator">,</span> <span class="Number">18</span>)<span class="Operator">,</span>
+
+        <span class="Comment"># s7 distribute remaining probability evenly across the last row ]</span>
+        <span class="Type">Fraction</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">6</span>)<span class="Operator">,</span>
+        <span class="Comment"># s8 this gives us (1 - (p(top) + p(bot))) / 3 = 1/6 for every bottom probability</span>
+        <span class="Type">Fraction</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">6</span>)<span class="Operator">,</span>
+        <span class="Comment"># s9 p = 1.0 = p(top) + p(bot) + p(bot) = 1/6 + 2/6 + 3/6</span>
+        <span class="Type">Fraction</span>(<span class="Number">1</span><span class="Operator">,</span> <span class="Number">6</span>)<span class="Operator">,</span>
+</span></span>    <span class="Operator">]</span>
+
+    <span class="Keyword">return</span> <span class="Function">transition_probs</span>(ssp)
+</span></span>
+
+<span class="Keyword">def</span> <span class="Function">exercise_3</span>() <span class="Operator">-&gt;</span> <span class="Type">Tuple</span><span class="Operator">[</span><span class="Type">float</span><span class="Operator">,</span> <span class="Type">Fraction</span><span class="Operator">,</span> <span class="Type">Fraction</span><span class="Operator">,</span> <span class="Type">Fraction</span><span class="Operator">]</span><span class="Operator">:</span>
+
+<span id='fold10' class='open-fold'><span class="Folded">+-- 15 lines: results = [run_markov(trans_probs=exercise_2(), steps=3)
+</span><span class='fulltext'>    results<span class="Operator"> = </span><span class="Operator">[</span><span class="Function">run_markov</span>(trans_probs<span class="Operator">=</span><span class="Function">exercise_2</span>()<span class="Operator">,</span> steps<span class="Operator">=</span><span class="Number">3</span>)
+               <span class="Repeat">for</span> _ <span class="Operator">in</span> <span class="Function">range</span>(<span class="Number">10000</span>)<span class="Operator">]</span>
+    results_s1<span class="Operator"> = </span><span class="Type">Fraction</span>(
+        <span class="Function">len</span>(<span class="Operator">[</span>state <span class="Repeat">for</span> state <span class="Operator">in</span> results <span class="Conditional">if</span> state<span class="Operator"> == </span><span class="Number">1</span><span class="Operator">]</span>)<span class="Operator">,</span>
+        <span class="Function">len</span>(results))
+
+    results_s3<span class="Operator"> = </span><span class="Type">Fraction</span>(
+        <span class="Function">len</span>(<span class="Operator">[</span>state <span class="Repeat">for</span> state <span class="Operator">in</span> results <span class="Conditional">if</span> state<span class="Operator"> == </span><span class="Number">3</span><span class="Operator">]</span>)<span class="Operator">,</span>
+        <span class="Function">len</span>(results))
+
+    results_s9<span class="Operator"> = </span><span class="Type">Fraction</span>(
+        <span class="Function">len</span>(<span class="Operator">[</span>state <span class="Repeat">for</span> state <span class="Operator">in</span> results <span class="Conditional">if</span> state<span class="Operator"> == </span><span class="Number">9</span><span class="Operator">]</span>)<span class="Operator">,</span>
+        <span class="Function">len</span>(results))
+
+    <span class="Keyword">return</span> <span class="Function">stdev</span>(results)<span class="Operator">,</span> results_s1<span class="Operator">,</span> results_s3<span class="Operator">,</span> results_s9
+</span></span>
+
+<span class="Keyword">def</span> <span class="Function">exercise_4</span>() <span class="Operator">-&gt;</span> <span class="Type">Tuple</span><span class="Operator">[</span><span class="Type">float</span><span class="Operator">,</span> <span class="Type">Fraction</span><span class="Operator">,</span> <span class="Type">Fraction</span><span class="Operator">,</span> <span class="Type">Fraction</span><span class="Operator">]</span><span class="Operator">:</span>
+
+<span id='fold11' class='open-fold'><span class="Folded">+-- 15 lines: results = [run_markov(trans_probs=exercise_2(), steps=1)
+</span><span class='fulltext'>    results<span class="Operator"> = </span><span class="Operator">[</span><span class="Function">run_markov</span>(trans_probs<span class="Operator">=</span><span class="Function">exercise_2</span>()<span class="Operator">,</span> steps<span class="Operator">=</span><span class="Number">1</span>)
+               <span class="Repeat">for</span> _ <span class="Operator">in</span> <span class="Function">range</span>(<span class="Number">1000000</span>)<span class="Operator">]</span>
+    results_s1<span class="Operator"> = </span><span class="Type">Fraction</span>(
+        <span class="Function">len</span>(<span class="Operator">[</span>state <span class="Repeat">for</span> state <span class="Operator">in</span> results <span class="Conditional">if</span> state<span class="Operator"> == </span><span class="Number">1</span><span class="Operator">]</span>)<span class="Operator">,</span>
+        <span class="Function">len</span>(results))
+
+    results_s3<span class="Operator"> = </span><span class="Type">Fraction</span>(
+        <span class="Function">len</span>(<span class="Operator">[</span>state <span class="Repeat">for</span> state <span class="Operator">in</span> results <span class="Conditional">if</span> state<span class="Operator"> == </span><span class="Number">3</span><span class="Operator">]</span>)<span class="Operator">,</span>
+        <span class="Function">len</span>(results))
+
+    results_s9<span class="Operator"> = </span><span class="Type">Fraction</span>(
+        <span class="Function">len</span>(<span class="Operator">[</span>state <span class="Repeat">for</span> state <span class="Operator">in</span> results <span class="Conditional">if</span> state<span class="Operator"> == </span><span class="Number">9</span><span class="Operator">]</span>)<span class="Operator">,</span>
+        <span class="Function">len</span>(results))
+
+    <span class="Keyword">return</span> <span class="Function">stdev</span>(results)<span class="Operator">,</span> results_s1<span class="Operator">,</span> results_s3<span class="Operator">,</span> results_s9
+</span></span>
+
+<span class="Comment"># execution &amp; pprinting</span>
+<span class="Conditional">if</span> __name__<span class="Operator"> == </span><span class="Operator">'</span><span class="String">__main__</span><span class="Operator">'</span><span class="Operator">:</span>
+<span id='fold12' class='open-fold'><span class="Folded">+-- 25 lines: from sys import argv
+</span><span class='fulltext'>    <span class="Include">from</span> sys <span class="Include">import</span> argv
+    <span class="Conditional">if</span> <span class="Function">len</span>(argv)<span class="Operator"> &gt; </span><span class="Number">1</span><span class="Operator">:</span>
+<span id='fold13' class='open-fold'><span class="Folded">+--- 21 lines: exercise = int(argv[1])
+</span><span class='fulltext'>        exercise<span class="Operator"> = </span><span class="Function">int</span>(argv<span class="Operator">[</span><span class="Number">1</span><span class="Operator">]</span>)
+        heading<span class="Operator"> = </span>f<span class="Operator">'</span><span class="String">Solution to exercise </span>{exercise}<span class="Operator">'</span>
+        <span class="Function">print</span>(heading)
+        <span class="Function">print</span>(<span class="Operator">'</span><span class="String">-</span><span class="Operator">'</span><span class="Operator"> * </span><span class="Function">len</span>(heading))
+        <span class="Conditional">if</span> exercise<span class="Operator"> == </span><span class="Number">1</span><span class="Operator">:</span>
+            <span class="Function">print_matrix</span>(<span class="Function">exercise_1</span>())
+        <span class="Conditional">elif</span> exercise<span class="Operator"> == </span><span class="Number">2</span><span class="Operator">:</span>
+            <span class="Function">print_matrix</span>(<span class="Function">exercise_2</span>())
+        <span class="Conditional">elif</span> exercise<span class="Operator"> == </span><span class="Number">3</span><span class="Operator">:</span>
+            std<span class="Operator">,</span> p1<span class="Operator">,</span> p3<span class="Operator">,</span> p9<span class="Operator"> = </span><span class="Function">exercise_3</span>()
+            <span class="Function">print</span>(f<span class="Operator">'</span><span class="String">probability for state 1: </span>{p1}<span class="String">+-</span>{std}<span class="Operator">'</span>)
+            <span class="Function">print</span>(f<span class="Operator">'</span><span class="String">probability for state 3: </span>{p3}<span class="String">+-</span>{std}<span class="Operator">'</span>)
+            <span class="Function">print</span>(f<span class="Operator">'</span><span class="String">probability for state 9: </span>{p9}<span class="String">+-</span>{std}<span class="Operator">'</span>)
+        <span class="Conditional">elif</span> exercise<span class="Operator"> == </span><span class="Number">4</span><span class="Operator">:</span>
+            std<span class="Operator">,</span> p1<span class="Operator">,</span> p3<span class="Operator">,</span> p9<span class="Operator"> = </span><span class="Function">exercise_3</span>()
+            <span class="Function">print</span>(f<span class="Operator">'</span><span class="String">probability for state 1: </span>{p1}<span class="String">+-</span>{std}<span class="Operator">'</span>)
+            <span class="Function">print</span>(f<span class="Operator">'</span><span class="String">probability for state 3: </span>{p3}<span class="String">+-</span>{std}<span class="Operator">'</span>)
+            <span class="Function">print</span>(f<span class="Operator">'</span><span class="String">probability for state 9: </span>{p9}<span class="String">+-</span>{std}<span class="Operator">'</span>)
+        <span class="Conditional">else</span><span class="Operator">:</span>
+            <span class="Statement">raise</span> <span class="Type">NotImplementedError</span>(
+                f<span class="Operator">'</span><span class="String">exercise number &quot;</span>{exercise}<span class="String">&quot; is invalid, try 1-4</span><span class="Operator">'</span>)
+</span></span>    <span class="Conditional">else</span><span class="Operator">:</span>
+        <span class="Function">print</span>(<span class="Operator">f'''</span>
+</span></span>{__file__}<span class="String"> - solutions to stochastic systems assessment</span>
+
+<span class="String">Usage:</span>
+<span class="String">    </span>{__file__}<span class="String"> &lt; 1 | 2 | 3 | 4 &gt;</span>
+<span class="Operator">'''</span><span class="Operator">.</span><span class="Function">strip</span>())
+</pre>
+</body>
+
+</html>
+<!-- vim: set foldmethod=manual : -->
