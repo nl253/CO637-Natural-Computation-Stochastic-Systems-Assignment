@@ -21,12 +21,6 @@ ADJECANCY_LIST: List[List[int]] = [
     [6, 8],
 ]
 
-def random_idx(xs: List[int]):
-    return randrange(0, len(xs))
-
-def propse_state(current_state: int) -> int:
-    return random_idx(ADJECANCY_LIST[current_state])
-
 def get_trans_probs(SSP: FracVec) -> FracMatrix:
 
     trans_table: FracMatrix = [[ZERO for _ in range(1, 10)] for _ in range(1, 10)]
