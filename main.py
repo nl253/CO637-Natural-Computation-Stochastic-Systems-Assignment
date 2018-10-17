@@ -22,12 +22,23 @@ parser.add_argument(
     type=int)
 
 parser.add_argument(
+    '--debug',
+    help='turn on very verbose logging',
+    action='store_true',
+    default=False)
+
+parser.add_argument(
     '--test',
     help='run tests for the exercise instead of running it',
     action='store_true',
     default=False)
 
 args: Namespace = parser.parse_args()
+
+if args.debug:
+    import logging
+    from logging import DEBUG
+    logging.basicConfig(level=DEBUG, format='[%(levelname)s] %(message)s')
 
 if args.exercise < 0 or args.exercise > 4:
     raise NotImplementedError(

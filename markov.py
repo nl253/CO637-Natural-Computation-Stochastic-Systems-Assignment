@@ -6,7 +6,7 @@ from typing import List, Tuple, Dict
 
 # Relative
 from tests import  test_is_square, test_probs_eq_1
-from utils import ONE, ZERO, FracVec, FracMatrix
+from utils import ONE, ZERO, FracVec, FracMatrix, log
 
 # ADJECANCY_LIST[state - 1] == neighbours for state  
 ADJECANCY_LIST: List[List[int]] = [
@@ -52,7 +52,7 @@ def get_trans_probs(SSP: FracVec) -> FracMatrix:
             non_self_ps += trans_table[s1 - 1][neighbour - 1]
 
         if non_self_ps < ONE:
-            print(f"non-self transitions don't add up to 1 (got {non_self_ps}), adding self-transition")
+            log.debug(f"non-self transitions didn't add up to 1.0 (got {non_self_ps}), adding a self transition")
             trans_table[s1 - 1][s1 - 1] = ONE - non_self_ps
 
     return trans_table
@@ -61,26 +61,33 @@ def get_trans_probs(SSP: FracVec) -> FracMatrix:
 def run_markov(trans_table: FracMatrix, state=randrange(1, 10), steps=1) -> int:
     """Proposes a random state given on supplied transition probabilities.
     """
-
-    r: Frac = Frac(*random().as_integer_ratio())
-
-    # associate all probabilities with state number *before*
-    # sorting so info about what it is a transition to isn't lost
-    ordered_tp: List[Tuple[int, Frac]] = [(0, ZERO)] + \
-        sorted(enumerate(trans_table[state - 1], start=1),
-               reverse=True,
-               key=(lambda pair: pair[1]))
-
     def between_upper_inc(x, m, n) -> bool: return x > m and x <= n
 
     for _ in range(steps):
+        log.debug(f'current state is {state}')
+        # associate all probabilities with state number *before*
+        # sorting so info about what it is a transition to isn't lost
+        ordered_tp: List[Tuple[int, Frac]] = [(0, ZERO)] + \
+            sorted(enumerate(trans_table[state - 1], start=1),
+                reverse=True,
+                key=(lambda pair: pair[1]))
+
+        log.debug('ordered transition probs are:')
+        for state, p in ordered_tp[1:]:
+            log.debug("%d: %2.2f" % (state, float(p)))
+
         # tower sampling
+        r: Frac = Frac(*random().as_integer_ratio())
+
+        log.debug(f'random num is {"%2.2f" % float(r)}')
+
         # -1 because I am looking ahead `i + 1`
         for i in range(len(ordered_tp) - 1):
             # indices upper-exclusive so ranges are biased
-            if between_upper_inc(r, sum([pair[0] for pair in ordered_tp[:i + 1]]),
-                       sum([pair[0] for pair in ordered_tp[:i + 2]])):
+            if between_upper_inc(r, sum([pair[1] for pair in ordered_tp[:i + 1]]),
+                                    sum([pair[1] for pair in ordered_tp[:i + 2]])):
                 state = ordered_tp[i + 1][0]
+                log.debug(f'transitioned to state {state}')
                 break
 
     return state
