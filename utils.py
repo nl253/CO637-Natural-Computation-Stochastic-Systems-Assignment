@@ -1,6 +1,6 @@
 # Standard Library
 from fractions import Fraction as Frac
-from typing import List
+from typing import List, Any
 
 ONE = Frac(1, 1)
 ZERO = Frac(0, 1)

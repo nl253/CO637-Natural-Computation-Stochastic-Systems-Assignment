@@ -45,16 +45,17 @@ if args.test:
         test_exercise_4()
 else:
     print_heading(f'Solution to exercise {args.exercise}')
+
     if args.exercise == 1:
         SSP, trans_table = exercise_1()
         print_matrix(trans_table)
+
     elif args.exercise == 2:
         SSP, trans_table = exercise_2()
         print_matrix(trans_table)
-    elif args.exercise == 3 or args.exercise == 4:
 
-        std, p1, p3, p9 = exercise_3() if args.exercise == 3 \
-            else exercise_4()
+    elif args.exercise == 3 or args.exercise == 4:
+        std, p1, p3, p9 = exercise_3() if args.exercise == 3 else exercise_4()
 
         def show(n: int, p: Frac) -> None:
             print(f'probability for state {n}: {p}+-{std}')

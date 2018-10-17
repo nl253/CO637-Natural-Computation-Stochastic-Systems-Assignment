@@ -89,25 +89,24 @@ def exercise_1() -> Tuple[FracVec, FracMatrix]:
 def exercise_2() -> Tuple[FracVec, FracMatrix]:
     # the sum of all SSP needs to be 1.0
     SSP: FracVec = [
-
         # [ BOT ROW ]
-        # all in mid row need to add up to 1/6
-        # because top_row = 1/18 + 1/18 + 1/18 = 1/18 * 3 = 3/18 = 1/6
+        # all in bot row need to add up to 1/6
+        # because top_row = 1/18 + 1/18 + 1/18 = 3/18 = 1/6
         Frac(1, 18),  # s1
         Frac(1, 18),  # s2
         Frac(1, 18),  # s3
 
         # [ MID ROW ]
         # all in mid row need to add up to 2/6
-        # because mid_row = 2/18 + 2/18 + 2/18 = 2/18 * 3 = 6/18 = 2/6
+        # because mid_row = 2/18 + 2/18 + 2/18 = 6/18 = 2/6
         Frac(2, 18),  # s4
         Frac(2, 18),  # s5
         Frac(2, 18),  # s6
 
-        # distribute remaining probability evenly across the last row ]
-        #
-        # this gives us (1 - (p(top) + p(bot))) / 3 = 1/6
-        # for every bottom probability
+        # [ TOP ROW ]
+        # distribute remaining probability evenly across the top row
+        # 
+        #   (1 - (p(top) + p(bot))) / 3 = 1/6
         #
         # p = 1.0 = p(top) + p(bot) + p(bot) = 1/6 + 2/6 + 3/6
         Frac(1, 6),  # s7
