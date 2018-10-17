@@ -2,48 +2,57 @@
 from fractions import Fraction as Frac
 from random import random, randrange
 from statistics import stdev
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 # Relative
 from tests import  test_is_square, test_probs_eq_1
 from utils import ONE, ZERO, FracVec, FracMatrix
 
-DEFAULT_TRANS_TABLE: FracMatrix = [
-    [Frac(1, 2), Frac(1, 4), ZERO,       Frac(1, 4), ZERO,       ZERO,       ZERO,       ZERO,       ZERO      ],
-    [Frac(1, 4), Frac(1, 4), Frac(1, 4), ZERO,       Frac(1, 4), ZERO,       ZERO,       ZERO,       ZERO      ],
-    [ZERO,       Frac(1, 4), Frac(1, 2), ZERO,       ZERO,       Frac(1, 4), ZERO,       ZERO,       ZERO      ],
-    [Frac(1, 4), ZERO,       ZERO,       Frac(1, 4), Frac(1, 4), ZERO,       Frac(1, 4), ZERO,       ZERO      ],
-    [ZERO,       Frac(1, 4), ZERO,       Frac(1, 4), ZERO,       Frac(1, 4), ZERO,       Frac(1, 4), ZERO      ],
-    [ZERO,       ZERO,       Frac(1, 4), ZERO,       Frac(1, 4), Frac(1, 4), ZERO,       ZERO,       Frac(1, 4)],
-    [ZERO,       ZERO,       ZERO,       Frac(1, 4), ZERO,       ZERO,       Frac(1, 2), Frac(1, 4), ZERO      ],
-    [ZERO,       ZERO,       ZERO,       Frac(1, 4), Frac(1, 4), ZERO,       Frac(1, 4), Frac(1, 4), Frac(1, 4)],
-    [ZERO,       ZERO,       ZERO,       ZERO,       ZERO,       Frac(1, 4), ZERO,       Frac(1, 4), Frac(1, 2)],
+# ADJECANCY_LIST[state - 1] == neighbours for state  
+ADJECANCY_LIST: List[List[int]] = [
+    [2, 4],
+    [1, 3, 5],
+    [2, 6],
+    [1, 5, 7],
+    [2, 4, 6, 8],
+    [3, 5, 9],
+    [4, 8],
+    [5, 7, 9],
+    [6, 8],
 ]
 
-def get_trans_probs(SSP: FracVec, trans_table=DEFAULT_TRANS_TABLE) -> FracMatrix:
+def random_idx(xs: List[int]):
+    return randrange(0, len(xs))
+
+def propse_state(current_state: int) -> int:
+    return random_idx(ADJECANCY_LIST[current_state])
+
+def get_trans_probs(SSP: FracVec) -> FracMatrix:
+
+    trans_table: FracMatrix = [[ZERO for _ in range(1, 10)] for _ in range(1, 10)]
+
     test_is_square('funct get_trans_probs', trans_table)
     test_probs_eq_1("funct get_trans_probs", SSP)
 
     # in Python upper bound is exclusive
     # for each pair of states
     for s1 in range(1, 10):
-        for s2 in range(1, 10):
-            # indices are biased
-            # state 1, for example, is stored in index 0
+        # indices are biased
+        # state 1, for example, is stored in index 0
+        for s2 in ADJECANCY_LIST[s1 - 1]:
             acc_prob: Frac = min(ONE,
                                  Frac(SSP[s2 - 1],
                                       SSP[s1 - 1]))
-
-            r: Frac = trans_table[s1 - 1][s2 - 1]
-            #  r: Frac = Frac(*random().as_integer_ratio())
-            trans_table[s1 - 1][s2 - 1] = acc_prob * r
+            # r: Frac = Frac(*random().as_integer_ratio())
+            prop_prob: Frac = Frac(1, len(ADJECANCY_LIST[s1 - 1]))
+            trans_table[s1 - 1][s2 - 1] = acc_prob * prop_prob
 
         non_self_ps = ZERO
-        for s3 in range(1, 10):
-            if s3 != s1:
-                non_self_ps += trans_table[s1 - 1][s3 - 1]
+        for neighbour in set(range(1, 10)) - {s1}:
+            non_self_ps += trans_table[s1 - 1][neighbour - 1]
 
         if non_self_ps < ONE:
+            print(f"non-self transitions don't add up to 1 (got {non_self_ps}), adding self-transition")
             trans_table[s1 - 1][s1 - 1] = ONE - non_self_ps
 
     return trans_table

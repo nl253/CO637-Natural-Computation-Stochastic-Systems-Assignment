@@ -1,5 +1,6 @@
 # Standard Library
 from fractions import Fraction as Frac
+from typing import Iterable
 
 # Relative
 from utils import ZERO, ONE, fail_msg, print_heading, FracVec, FracMatrix
