@@ -3,11 +3,7 @@ from fractions import Fraction as Frac
 from typing import Iterable, Union
 
 # Relative
-from utils import ONE, ZERO, FracMatrix, fail_msg
-
-if (locals().get('exercise_1', None) is None) and \
-        (globals().get('exercise_1', None) is None):
-    from markov import exercise_1, exercise_2, exercise_3, exercise_4
+from utils import ONE, ZERO, FracMatrix, fail_msg, print_heading
 
 
 def is_valid_p(p: Frac) -> bool:
@@ -49,18 +45,26 @@ def test_tranition_probs(trans_table: FracMatrix, exe_no: int) -> None:
 
 
 def test_exercise_1() -> None:
+    print_heading(f'tests for exercise 1')
+    from markov import exercise_1
     SSP, trans_table = exercise_1()
     test_is_square('test_exercise_1', trans_table)
     test_tranition_probs(trans_table, 1)
+    print('OK! tests for exercise 1 passed')
 
 
 def test_exercise_2() -> None:
+    print_heading(f'tests for exercise 2')
+    from markov import exercise_2
     SSP, trans_table = exercise_2()
     test_is_square('test_exercise_2', trans_table)
     test_tranition_probs(trans_table, 2)
+    print('OK! tests for exercise 2 passed')
 
 
 def test_exercise_3() -> None:
+    print_heading(f'tests for exercise 3')
+    from markov import exercise_3
     std, p1, p3, p9 = exercise_3()
 
     def check(n: int, p: Frac) -> None:
@@ -80,8 +84,12 @@ def test_exercise_3() -> None:
                  'sum(p(1), p(3), p(9)) < 1.0',
                  '%2.2f' % float(p1 + p3 + p9))
 
+    print('OK! tests for exercise 3 passed')
+
 
 def test_exercise_4() -> None:
+    print_heading(f'tests for exercise 4')
+    from markov import exercise_4
     std, p1, p3, p9 = exercise_4()
 
     for p, s in [(p1, 1), (p3, 3), (p9, 9)]:
@@ -96,3 +104,5 @@ def test_exercise_4() -> None:
         f"invalid p i.e.: sum(SSP(s1), SSP(s3) and SSP(s9))",
         f"p({p1 + p3 + p9}) in range [0, 1]",
         p1 + p3 + p9)
+
+    print('OK! tests for exercise 4 passed')

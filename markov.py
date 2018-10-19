@@ -24,12 +24,11 @@ ADJECANCY_LIST: List[List[int]] = [
 
 
 def get_trans_probs(SSP: FracVec) -> FracMatrix:
+    test_probs_eq_1("funct get_trans_probs", SSP)
 
     trans_table: FracMatrix = [
         [ZERO for _ in range(1, 10)] for _ in range(1, 10)]
 
-    test_is_square('funct get_trans_probs', trans_table)
-    test_probs_eq_1("funct get_trans_probs", SSP)
 
     # in Python upper bound is exclusive
     # for each pair of states
