@@ -2,13 +2,14 @@
 from fractions import Fraction as Frac
 from random import random, randrange
 from statistics import stdev
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
 
+# 3rd Party
 # Relative
-from tests import  test_is_square, test_probs_eq_1
-from utils import ONE, ZERO, FracVec, FracMatrix, log
+from tests import test_is_square, test_probs_eq_1
+from utils import ONE, ZERO, FracMatrix, FracVec, log
 
-# ADJECANCY_LIST[state - 1] == neighbours for state  
+# ADJECANCY_LIST[state - 1] == neighbours for state
 ADJECANCY_LIST: List[List[int]] = [
     [2, 4],
     [1, 3, 5],
@@ -21,9 +22,11 @@ ADJECANCY_LIST: List[List[int]] = [
     [6, 8],
 ]
 
+
 def get_trans_probs(SSP: FracVec) -> FracMatrix:
 
-    trans_table: FracMatrix = [[ZERO for _ in range(1, 10)] for _ in range(1, 10)]
+    trans_table: FracMatrix = [
+        [ZERO for _ in range(1, 10)] for _ in range(1, 10)]
 
     test_is_square('funct get_trans_probs', trans_table)
     test_probs_eq_1("funct get_trans_probs", SSP)
@@ -46,7 +49,8 @@ def get_trans_probs(SSP: FracVec) -> FracMatrix:
             non_self_ps += trans_table[s1 - 1][neighbour - 1]
 
         if non_self_ps < ONE:
-            log.debug(f"non-self transitions didn't add up to 1.0 (got {non_self_ps}), adding a self transition")
+            log.debug(
+                f"non-self transitions didn't add up to 1.0 (got {non_self_ps}), adding a self transition")
             trans_table[s1 - 1][s1 - 1] = ONE - non_self_ps
 
     return trans_table
@@ -63,8 +67,8 @@ def run_markov(trans_table: FracMatrix, state=randrange(1, 10), steps=1) -> int:
         # sorting so info about what it is a transition to isn't lost
         ordered_tp: List[Tuple[int, Frac]] = [(0, ZERO)] + \
             sorted(enumerate(trans_table[state - 1], start=1),
-                reverse=True,
-                key=(lambda pair: pair[1]))
+                   reverse=True,
+                   key=(lambda pair: pair[1]))
 
         log.debug('ordered transition probs are:')
         for state, p in ordered_tp[1:]:
@@ -78,8 +82,10 @@ def run_markov(trans_table: FracMatrix, state=randrange(1, 10), steps=1) -> int:
         # -1 because I am looking ahead `i + 1`
         for i in range(len(ordered_tp) - 1):
             # indices upper-exclusive so ranges are biased
-            if between_upper_inc(r, sum([pair[1] for pair in ordered_tp[:i + 1]]),
-                                    sum([pair[1] for pair in ordered_tp[:i + 2]])):
+            if between_upper_inc(
+                    r,
+                    sum([pair[1] for pair in ordered_tp[:i + 1]]),
+                    sum([pair[1] for pair in ordered_tp[:i + 2]])):
                 state = ordered_tp[i + 1][0]
                 log.debug(f'transitioned to state {state}')
                 break
@@ -115,7 +121,7 @@ def exercise_2() -> Tuple[FracVec, FracMatrix]:
 
         # [ TOP ROW ]
         # distribute remaining probability evenly across the top row
-        # 
+        #
         #   (1 - (p(top) + p(bot))) / 3 = 1/6
         #
         # p = 1.0 = p(top) + p(bot) + p(bot) = 1/6 + 2/6 + 3/6

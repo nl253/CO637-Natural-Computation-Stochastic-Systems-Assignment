@@ -6,10 +6,11 @@ from argparse import ArgumentParser, Namespace
 from fractions import Fraction as Frac
 from os.path import basename
 
-# Relative
-from utils import print_heading, print_matrix
+# 3rd Party
 from markov import exercise_1, exercise_2, exercise_3, exercise_4
 from tests import test_exercise_1, test_exercise_2, test_exercise_3, test_exercise_4
+# Relative
+from utils import print_heading, print_matrix
 
 parser: ArgumentParser = ArgumentParser(
     prog=basename(__file__).replace('.py', ''),
