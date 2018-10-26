@@ -67,7 +67,7 @@ else:
 
     elif args.exercise == 3 or args.exercise == 4:
         from markov import exercise_3, exercise_4
-        std, p1, p3, p9 = exercise_3() if args.exercise == 3 else exercise_4()
+        ((p1, std1), (p3, std3), (p9, std9)) = exercise_3() if args.exercise == 3 else exercise_4()
 
-        for s, p in [(1, p1), (3, p3), (9, p9)]:
+        for s, p, std in [(1, p1, std1), (3, p3, std3), (9, p9, std9)]:
             print(f'p(state = {s}) = {p}+-{std}')

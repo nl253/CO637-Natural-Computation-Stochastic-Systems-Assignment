@@ -25,5 +25,6 @@ def print_matrix(m: FracMatrix) -> None:
     for i in range(len(m)):
         print('[ ', end='')
         for j in range(len(m[i])):
-            print("%2.2f" % float(m[i][j]), end=' ')
+            #  print("%2.2f" % float(m[i][j]), end=' ')
+            print("%5s" % str(m[i][j]), end=' ')
         print(']')

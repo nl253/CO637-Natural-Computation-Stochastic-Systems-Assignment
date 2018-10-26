@@ -29,7 +29,6 @@ def get_trans_probs(SSP: FracVec) -> FracMatrix:
     trans_table: FracMatrix = [
         [ZERO for _ in range(1, 10)] for _ in range(1, 10)]
 
-
     # in Python upper bound is exclusive
     # for each pair of states
     for s1 in range(1, 10):
@@ -40,13 +39,16 @@ def get_trans_probs(SSP: FracVec) -> FracMatrix:
                                  Frac(SSP[s2 - 1],
                                       SSP[s1 - 1]))
             # r: Frac = Frac(*random().as_integer_ratio())
-            prop_prob: Frac = Frac(1, len(ADJECANCY_LIST[s1 - 1]))
+            #  prop_prob: Frac = Frac(1, len(ADJECANCY_LIST[s1 - 1]))
+            prop_prob: Frac = Frac(1, 4)
             trans_table[s1 - 1][s2 - 1] = acc_prob * prop_prob
 
         non_self_ps = ZERO
-        for neighbour in set(range(1, 10)) - {s1}:
+
+        for neighbour in ADJECANCY_LIST[s1 - 1]:
             non_self_ps += trans_table[s1 - 1][neighbour - 1]
 
+        log.debug(f'non-self ps = {non_self_ps}')
         if non_self_ps < ONE:
             log.debug(
                 f"non-self transitions didn't add up to 1.0 (got {non_self_ps}), adding a self transition")
@@ -70,6 +72,7 @@ def run_markov(trans_table: FracMatrix, state=randrange(1, 10), steps=1) -> int:
                    key=(lambda pair: pair[1]))
 
         log.debug('ordered transition probs are:')
+
         for state, p in ordered_tp[1:]:
             log.debug("%d: %2.2f" % (state, float(p)))
 
@@ -132,33 +135,64 @@ def exercise_2() -> Tuple[FracVec, FracMatrix]:
     return SSP, get_trans_probs(SSP)
 
 
-def exercise_3() -> Tuple[float, Frac, Frac, Frac]:
-    t = 10**4
+def exercise_3() -> Tuple[Tuple[Frac, Frac], Tuple[Frac, Frac], Tuple[Frac, Frac]]:
+    reps = 10000
+    tries = 10
     _, trans_table = exercise_2()
 
-    results = [run_markov(trans_table=trans_table, steps=3) for _ in range(t)]
+    def p_stdev(state: int) -> Tuple[Frac, Frac]:
+        ps: List[Frac] = []
 
-    # count state in the pool of all s
-    def p(state: int) -> Frac:
-        return Frac(len([s for s in results if s == state]),
-                    len(results))
+        # the prob of being in state is the ratio of runs
+        # which resulted in being in the state to all runs
+        def p(state: int, results: List[int]) -> Frac:
+            num = 0
+            for s in results:
+                if s == state:
+                    num += 1
+            return Frac(num, len(results))
 
-    return stdev(results), p(1), p(3), p(9)
+        for _ in range(tries):
+
+            # where you are after 3 steps
+            results: List[int] = [run_markov(trans_table=trans_table, steps=3)
+                                  for _ in range(reps)]
+
+            ps.append(p(state, results))
+
+        return ps[0], stdev(ps)
+
+    return p_stdev(1), p_stdev(3), p_stdev(9)
 
 
-def exercise_4() -> Tuple[float, Frac, Frac, Frac]:
-    t = 10**6
+def exercise_4() -> Tuple[Tuple[Frac, Frac], Tuple[Frac, Frac], Tuple[Frac, Frac]]:
+    reps = 10**6
+    tries = 10
     _, trans_table = exercise_2()
 
-    results = [run_markov(trans_table=trans_table, steps=1) for _ in range(t)]
+    def p_stdev(state: int) -> Tuple[Frac, Frac]:
+        ps: List[Frac] = []
 
-    # count state in the pool of all s
-    def p(state: int) -> Frac:
-        return Frac(
-            len([s for s in results if s == state]),
-            len(results))
+        # the prob of being in state is the ratio of runs
+        # which resulted in being in the state to all runs
+        def p(state: int, results: List[int]) -> Frac:
+            num = 0
+            for s in results:
+                if s == state:
+                    num += 1
+            return Frac(num, len(results))
 
-    return stdev(results), p(1), p(3), p(9)
+        for _ in range(tries):
+
+            # where you are after 3 steps
+            results: List[int] = [run_markov(trans_table=trans_table, steps=1)
+                                  for _ in range(reps)]
+
+            ps.append(p(state, results))
+
+        return ps[0], stdev(ps)
+
+    return p_stdev(1), p_stdev(3), p_stdev(9)
 
 
 # execution & pprinting (command line interface) defined in cli.py

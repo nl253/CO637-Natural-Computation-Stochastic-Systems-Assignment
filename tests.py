@@ -65,7 +65,7 @@ def test_exercise_2() -> None:
 def test_exercise_3() -> None:
     print_heading(f'tests for exercise 3')
     from markov import exercise_3
-    std, p1, p3, p9 = exercise_3()
+    ((p1, std1), (p3, std3), (p9, std9)) = exercise_3()
 
     def check(n: int, p: Frac) -> None:
         assert is_valid_p(p), fail_msg(
@@ -90,7 +90,7 @@ def test_exercise_3() -> None:
 def test_exercise_4() -> None:
     print_heading(f'tests for exercise 4')
     from markov import exercise_4
-    std, p1, p3, p9 = exercise_4()
+    ((p1, std1), (p3, std3), (p9, std9)) = exercise_4()
 
     for p, s in [(p1, 1), (p3, 3), (p9, 9)]:
         assert is_valid_p(p), fail_msg(
