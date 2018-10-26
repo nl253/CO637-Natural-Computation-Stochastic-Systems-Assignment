@@ -61,7 +61,6 @@ def get_trans_probs(SSP: FracVec) -> FracMatrix:
 def run_markov(trans_table: FracMatrix, state=randrange(1, 10), steps=1) -> int:
     """Proposes a random state given on supplied transition probabilities.
     """
-
     for _ in range(steps):
         log.debug(f'current state is {state}')
         # associate all probabilities with state number *before*
@@ -74,14 +73,14 @@ def run_markov(trans_table: FracMatrix, state=randrange(1, 10), steps=1) -> int:
         log.debug('ordered transition probs are:')
 
         for state, p in ordered_tp[1:]:
-            log.debug("%d: %2.2f" % (state, float(p)))
+            log.debug("%d: %s" % (state, str(p)))
 
         # tower sampling
         r: Frac = Frac(*random().as_integer_ratio())
 
-        log.debug(f'random num is {"%2.2f" % float(r)}')
+        log.debug(f'random num is {str(r)}')
 
-        @lru_cache(maxsize=200, typed=False)
+        @lru_cache(maxsize=100, typed=False)
         def sum_up_to(i: int) -> Union[Frac, int]:
             return sum((p for s, p in ordered_tp[:i]))
 
@@ -168,7 +167,7 @@ def exercise_3() -> Tuple[Tuple[Frac, Frac], Tuple[Frac, Frac], Tuple[Frac, Frac
 
 def exercise_4() -> Tuple[Tuple[Frac, Frac], Tuple[Frac, Frac], Tuple[Frac, Frac]]:
     reps = 10**6
-    tries = 10
+    tries = 5
     _, trans_table = exercise_2()
 
     def p_stdev(state: int) -> Tuple[Frac, Frac]:
