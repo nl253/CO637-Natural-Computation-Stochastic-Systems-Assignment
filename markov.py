@@ -57,10 +57,12 @@ def get_trans_probs(SSP: FracVec) -> FracMatrix:
     return trans_table
 
 
+def between_upper_inc(x, m, n) -> bool: return x > m and x <= n
+
+
 def run_markov(trans_table: FracMatrix, state=randrange(1, 10), steps=1) -> int:
     """Proposes a random state given on supplied transition probabilities.
     """
-    def between_upper_inc(x, m, n) -> bool: return x > m and x <= n
 
     for _ in range(steps):
         log.debug(f'current state is {state}')
@@ -84,10 +86,7 @@ def run_markov(trans_table: FracMatrix, state=randrange(1, 10), steps=1) -> int:
         # -1 because I am looking ahead `i + 1`
         for i in range(len(ordered_tp) - 1):
             # indices upper-exclusive so ranges are biased
-            if between_upper_inc(
-                    r,
-                    sum([pair[1] for pair in ordered_tp[:i + 1]]),
-                    sum([pair[1] for pair in ordered_tp[:i + 2]])):
+            if (r > sum((p for s, p in ordered_tp[:i + 1]))) and (r <= sum((p for s, p in ordered_tp[:i + 2]))):
                 state = ordered_tp[i + 1][0]
                 log.debug(f'transitioned to state {state}')
                 break
@@ -185,8 +184,8 @@ def exercise_4() -> Tuple[Tuple[Frac, Frac], Tuple[Frac, Frac], Tuple[Frac, Frac
         for _ in range(tries):
 
             # where you are after 3 steps
-            results: List[int] = [run_markov(trans_table=trans_table, steps=1)
-                                  for _ in range(reps)]
+            results: List[int] = [run_markov(
+                trans_table=trans_table) for _ in range(reps)]
 
             ps.append(p(state, results))
 
