@@ -1,8 +1,9 @@
 # Standard Library
 from fractions import Fraction as Frac
+from functools import lru_cache
 from random import random, randrange
 from statistics import stdev
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 # 3rd Party
 # Relative
@@ -57,9 +58,6 @@ def get_trans_probs(SSP: FracVec) -> FracMatrix:
     return trans_table
 
 
-def between_upper_inc(x, m, n) -> bool: return x > m and x <= n
-
-
 def run_markov(trans_table: FracMatrix, state=randrange(1, 10), steps=1) -> int:
     """Proposes a random state given on supplied transition probabilities.
     """
@@ -83,11 +81,15 @@ def run_markov(trans_table: FracMatrix, state=randrange(1, 10), steps=1) -> int:
 
         log.debug(f'random num is {"%2.2f" % float(r)}')
 
+        @lru_cache(maxsize=200, typed=False)
+        def sum_up_to(i: int) -> Union[Frac, int]:
+            return sum((p for s, p in ordered_tp[:i]))
+
         # -1 because I am looking ahead `i + 1`
         for i in range(len(ordered_tp) - 1):
             # indices upper-exclusive so ranges are biased
-            if (r > sum((p for s, p in ordered_tp[:i + 1]))) and (r <= sum((p for s, p in ordered_tp[:i + 2]))):
-                state = ordered_tp[i + 1][0]
+            if (r > sum_up_to(i + 1)) and (r <= sum_up_to(i + 2)):
+                state, _ = ordered_tp[i + 1]
                 log.debug(f'transitioned to state {state}')
                 break
 
